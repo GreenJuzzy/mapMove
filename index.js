@@ -5,9 +5,12 @@ var process = require("process");
 // Definitions
 var map = fs.readFileSync(__dirname + "/map.txt", "utf-8")
 
+process.stdin.setRawMode(true)
+
 const settings = {
     character: "*",
-    borders: ["#"]
+    border: "#",
+    walkThrough: "-"
 }
 
 // Functions
@@ -42,29 +45,52 @@ var formatMap = async (map) => {
 var move = async (direction, render, player, map) => {
     var newMap
 
+    if (!map.join("").includes(settings.character)) return { error: "No character found.", map: map} // If theres a character
 
-    console.log({ map })
-    if (!map.join("").includes(settings.character)) return { error: "No character found." }
-    
     var rowMap = {
-        row: () => {
-            var result = []
+        row: async () => {
+            var result
             map.filter((value, index, array) => {
-                if(value.includes(settings.character)) result = value
+                value.filter((v, i, a) => {
+                    if (v.includes(settings.character)) result = { val: v, row: index, indexRow: i }
+                })
             })
-            return result.length > 0 ? result : map
+            return result ? result : map
         },
-        left: () => {
+        left: async () => {
+            var result = map
+
+            var pos = await rowMap.row()
+
+            if (settings.walkThrough !== map[pos.row][pos.indexRow - 1] && settings.border == map[pos.row][pos.indexRow - 1]) return map // If you can walk there or not.
+
+            result[pos.row][pos.indexRow - 1] = settings.character
+            result[pos.row][pos.indexRow] = settings.walkThrough
+
+            return result
 
         },
-        above: () => {
+        right: async () => {
+            var result = map
+
+            var pos = await rowMap.row()
+
+            if (settings.walkThrough !== map[pos.row][pos.indexRow + 1] && settings.border == map[pos.row][pos.indexRow + 1]) return map // If you can walk there or not.
+
+            result[pos.row][pos.indexRow + 1] = settings.character
+            result[pos.row][pos.indexRow] = settings.walkThrough
+
+            return result
+
+        },
+        above: async () => {
             var result = []
             map.forEach((value, index, array) => {
                 if (value.includes(settings.character)) { result = map[index - 1] }
             })
             return result || undefined
         },
-        under: () => {
+        under: async () => {
             var result = []
             map.forEach((value, index, array) => {
                 if (value.includes(settings.character)) { result = map[index + 1] }
@@ -74,15 +100,32 @@ var move = async (direction, render, player, map) => {
     }
 
     switch (direction) {
-        case "up":
+        case "w":
             newMap = rowMap.above()
             break;
-    
-        default:
+
+        case "s":
+            newMap = rowMap.under()
+            break;
+
+        case "a":
+            newMap = rowMap.left()
+            break;
+
+        case "d":
+            newMap = rowMap.right()
             break;
     }
+
+    return newMap
 }
 (async () => {
-    move("up", 3, "*", await formatMap(map))
+    var formattedMap = await formatMap(map)
+    process.stdin.on("data", async (data) => {
+
+        data = data.toString().replace("\r\n", "")
+
+        console.log(await move(data, 0, "*", formattedMap))
+    })
 })()
 

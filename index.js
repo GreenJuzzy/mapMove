@@ -46,23 +46,28 @@ var formatMap = async (map) => {
 var move = async (direction, render, player, map) => {
     var newMap
 
-    if (!map.join("").includes(settings.character)) return { error: "No character found.", map: map} // If theres a character
+    if (!map.join("").includes(settings.character)) return { error: "No character found.", map: map } // If theres a character
 
     var rowMap = {
         row: async () => {
+            if (!map.join("").includes(settings.character)) return map
             var result
+
             map.filter((value, index, array) => {
                 value.filter((v, i, a) => {
                     if (v.includes(settings.character)) result = { val: v, row: index, indexRow: i }
                 })
             })
+
             return result ? result : map
         },
         left: async () => {
-            var result = map
+            if (!map.join("").includes(settings.character)) return map
 
+            var result = map
             var pos = await rowMap.row()
 
+            if (map[pos.row][pos.indexRow] == map[pos.row][0]) return map
             if (settings.walkThrough !== map[pos.row][pos.indexRow - 1] && settings.border == map[pos.row][pos.indexRow - 1]) return map // If you can walk there or not.
 
             result[pos.row][pos.indexRow - 1] = settings.character
@@ -72,10 +77,12 @@ var move = async (direction, render, player, map) => {
 
         },
         right: async () => {
-            var result = map
+            if (!map.join("").includes(settings.character)) return map
 
+            var result = map
             var pos = await rowMap.row()
 
+            if (map[pos.row][pos.indexRow] == map[pos.row][map.length - 1]) return map
             if (settings.walkThrough !== map[pos.row][pos.indexRow + 1] && settings.border == map[pos.row][pos.indexRow + 1]) return map // If you can walk there or not.
 
             result[pos.row][pos.indexRow + 1] = settings.character
@@ -85,10 +92,12 @@ var move = async (direction, render, player, map) => {
 
         },
         up: async () => {
-            var result = map
+            if (!map.join("").includes(settings.character)) return map
 
+            var result = map
             var pos = await rowMap.row()
 
+            if (map[pos.row] == map[0]) return map
             if (settings.walkThrough !== map[pos.row - 1][pos.indexRow] && settings.border == map[pos.row - 1][pos.indexRow]) return map // If you can walk there or not.
 
             result[pos.row - 1][pos.indexRow] = settings.character
@@ -97,10 +106,12 @@ var move = async (direction, render, player, map) => {
             return result
         },
         down: async () => {
-            var result = map
+            if (!map.join("").includes(settings.character)) return map
 
+            var result = map
             var pos = await rowMap.row()
 
+            if (map[pos.row] == map[map.length - 1]) return map
             if (settings.walkThrough !== map[pos.row + 1][pos.indexRow] && settings.border == map[pos.row + 1][pos.indexRow]) return map // If you can walk there or not.
 
             result[pos.row + 1][pos.indexRow] = settings.character
@@ -130,6 +141,7 @@ var move = async (direction, render, player, map) => {
 
     return newMap
 }
+
 (async () => {
     var formattedMap = await formatMap(currentMap)
     process.stdin.on("data", async (data) => {
@@ -137,7 +149,7 @@ var move = async (direction, render, player, map) => {
         data = data.toString().replace("\r\n", "")
 
         var map = await move(data, 0, "*", formattedMap)
-        
+
         map.forEach((value, index) => {
             console.log(value.join(" ").replace("*", chalk.red("*")))
         })

@@ -1,9 +1,10 @@
 // Imports
 var fs = require("fs");
 var process = require("process");
+var chalk = require("chalk")
 
 // Definitions
-var map = fs.readFileSync(__dirname + "/map.txt", "utf-8")
+var currentMap = fs.readFileSync(__dirname + "/map.txt", "utf-8")
 
 process.stdin.setRawMode(true)
 
@@ -83,29 +84,39 @@ var move = async (direction, render, player, map) => {
             return result
 
         },
-        above: async () => {
-            var result = []
-            map.forEach((value, index, array) => {
-                if (value.includes(settings.character)) { result = map[index - 1] }
-            })
-            return result || undefined
+        up: async () => {
+            var result = map
+
+            var pos = await rowMap.row()
+
+            if (settings.walkThrough !== map[pos.row - 1][pos.indexRow] && settings.border == map[pos.row - 1][pos.indexRow]) return map // If you can walk there or not.
+
+            result[pos.row - 1][pos.indexRow] = settings.character
+            result[pos.row][pos.indexRow] = settings.walkThrough
+
+            return result
         },
-        under: async () => {
-            var result = []
-            map.forEach((value, index, array) => {
-                if (value.includes(settings.character)) { result = map[index + 1] }
-            })
-            return result || undefined
+        down: async () => {
+            var result = map
+
+            var pos = await rowMap.row()
+
+            if (settings.walkThrough !== map[pos.row + 1][pos.indexRow] && settings.border == map[pos.row + 1][pos.indexRow]) return map // If you can walk there or not.
+
+            result[pos.row + 1][pos.indexRow] = settings.character
+            result[pos.row][pos.indexRow] = settings.walkThrough
+
+            return result
         }
     }
 
     switch (direction) {
         case "w":
-            newMap = rowMap.above()
+            newMap = rowMap.up()
             break;
 
         case "s":
-            newMap = rowMap.under()
+            newMap = rowMap.down()
             break;
 
         case "a":
@@ -120,12 +131,16 @@ var move = async (direction, render, player, map) => {
     return newMap
 }
 (async () => {
-    var formattedMap = await formatMap(map)
+    var formattedMap = await formatMap(currentMap)
     process.stdin.on("data", async (data) => {
-
+        console.clear()
         data = data.toString().replace("\r\n", "")
 
-        console.log(await move(data, 0, "*", formattedMap))
+        var map = await move(data, 0, "*", formattedMap)
+        
+        map.forEach((value, index) => {
+            console.log(value.join(" ").replace("*", chalk.red("*")))
+        })
     })
 })()
 

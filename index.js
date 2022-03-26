@@ -5,13 +5,15 @@ var chalk = require("chalk")
 
 // Definitions
 var currentMap = fs.readFileSync(__dirname + "/map.txt", "utf-8")
+var lastMap
 
 process.stdin.setRawMode(true)
 
 const settings = {
     character: "*",
     border: "#",
-    walkThrough: "-"
+    walkThrough: "-",
+    spacing: (currentMap.replace("\r", "").replaceAll(" ", "").split("\n")[0].length / 4)
 }
 
 // Functions
@@ -23,7 +25,7 @@ const settings = {
 var formatMap = async (map) => {
     var newArr = []
 
-    map = map.replaceAll("\r", "").replaceAll(" ", "").split("\n").forEach((value, index, array) => {
+    map = map.replaceAll("\r", "").replaceAll(" ", settings.border).split("\n").forEach((value, index, array) => {
         newArr[index] = value.split("")
     })
 
@@ -147,11 +149,20 @@ var move = async (direction, render, player, map) => {
     process.stdin.on("data", async (data) => {
         console.clear()
         data = data.toString().replace("\r\n", "")
+        var keys = ["w", "a", "s", "d"]
+        if (data == "v") return lastMap.forEach((value, index) => {
+            console.log("  " + value.join(" ".repeat(settings.spacing)).replace(settings.character, chalk.red(settings.character)) + "\n")
+        })
+
+        if (!keys.includes(data)) return lastMap.forEach((value, index) => {
+            console.log("  " + value.join(" ".repeat(settings.spacing)).replace(settings.character, chalk.red(settings.character)).replaceAll(settings.border, chalk.blue(settings.border)).replaceAll(settings.walkThrough, " ") + "\n")
+        })
 
         var map = await move(data, 0, "*", formattedMap)
+        lastMap = map
 
         map.forEach((value, index) => {
-            console.log(value.join(" ").replace("*", chalk.red("*")))
+            console.log("  " + value.join(" ".repeat(settings.spacing)).replace(settings.character, chalk.red(settings.character)).replaceAll(settings.border, chalk.blue(settings.border)).replaceAll(settings.walkThrough, " ") + "\n")
         })
     })
 })()

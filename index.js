@@ -12,8 +12,9 @@ process.stdin.setRawMode(true)
 const settings = {
     character: "*",
     border: "#",
-    walkThrough: "-",
-    spacing: (currentMap.replace("\r", "").replaceAll(" ", "").split("\n")[0].length / 4)
+    walkThrough: ["-"],
+    spacing: 5,
+    interactable: ""
 }
 
 // Functions
@@ -36,7 +37,7 @@ var formatMap = async (map) => {
 
 /**
  * 
- * @param {( "up" | "down" | "left" | "right")} direction Direction of movement.
+ * @param {( "w" | "s" | "a" | "d")} direction Direction of movement.
  * @param {Number} render The radius blocks should be rendered.
  * @param {String} player The symbol of player.
  * @param {String[]} map The full-sized map.
@@ -70,7 +71,7 @@ var move = async (direction, render, player, map) => {
             var pos = await rowMap.row()
 
             if (map[pos.row][pos.indexRow] == map[pos.row][0]) return map
-            if (settings.walkThrough !== map[pos.row][pos.indexRow - 1] && settings.border == map[pos.row][pos.indexRow - 1]) return map // If you can walk there or not.
+            if (!settings.walkThrough.includes(map[pos.row][pos.indexRow - 1]) && settings.border == map[pos.row][pos.indexRow - 1]) return map // If you can walk there or not.
 
             result[pos.row][pos.indexRow - 1] = settings.character
             result[pos.row][pos.indexRow] = settings.walkThrough
@@ -158,7 +159,7 @@ var move = async (direction, render, player, map) => {
             console.log("  " + value.join(" ".repeat(settings.spacing)).replace(settings.character, chalk.red(settings.character)).replaceAll(settings.border, chalk.blue(settings.border)).replaceAll(settings.walkThrough, " ") + "\n")
         })
 
-        var map = await move(data, 0, "*", formattedMap)
+        var map = await move(data, 0, settings.character, formattedMap)
         lastMap = map
 
         map.forEach((value, index) => {
@@ -166,4 +167,3 @@ var move = async (direction, render, player, map) => {
         })
     })
 })()
-

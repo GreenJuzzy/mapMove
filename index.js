@@ -3,6 +3,7 @@ var fs = require("fs");
 var process = require("process");
 var chalk = require("chalk")
 
+
 // Definitions
 var currentMap = fs.readFileSync(__dirname + "/map.txt", "utf-8")
 var lastMap
@@ -12,7 +13,7 @@ process.stdin.setRawMode(true)
 const settings = {
     character: "*",
     border: "#",
-    walkThrough: ["-"],
+    walkThrough: "-",
     spacing: 5,
     interactable: ""
 }
@@ -57,7 +58,7 @@ var move = async (direction, render, player, map) => {
             var result
 
             map.filter((value, index, array) => {
-                value.filter((v, i, a) => {
+                value.filter((v, i) => {
                     if (v.includes(settings.character)) result = { val: v, row: index, indexRow: i }
                 })
             })
@@ -71,7 +72,7 @@ var move = async (direction, render, player, map) => {
             var pos = await rowMap.row()
 
             if (map[pos.row][pos.indexRow] == map[pos.row][0]) return map
-            if (!settings.walkThrough.includes(map[pos.row][pos.indexRow - 1]) && settings.border == map[pos.row][pos.indexRow - 1]) return map // If you can walk there or not.
+            if (!settings.walkThrough.includes(map[pos.row][pos.indexRow - 1]) || settings.border == map[pos.row][pos.indexRow - 1]) return map // If you can walk there or not.
 
             result[pos.row][pos.indexRow - 1] = settings.character
             result[pos.row][pos.indexRow] = settings.walkThrough
@@ -85,14 +86,13 @@ var move = async (direction, render, player, map) => {
             var result = map
             var pos = await rowMap.row()
 
-            if (map[pos.row][pos.indexRow] == map[pos.row][map.length - 1]) return map
-            if (settings.walkThrough !== map[pos.row][pos.indexRow + 1] && settings.border == map[pos.row][pos.indexRow + 1]) return map // If you can walk there or not.
+            if (map[pos.row][pos.indexRow] == map[pos.row][map[pos.row].length - 1]) return map
+            if (!settings.walkThrough.includes(map[pos.row][pos.indexRow + 1]) || settings.border == map[pos.row][pos.indexRow + 1]) return map
 
             result[pos.row][pos.indexRow + 1] = settings.character
             result[pos.row][pos.indexRow] = settings.walkThrough
 
             return result
-
         },
         up: async () => {
             if (!map.join("").includes(settings.character)) return map
@@ -100,8 +100,8 @@ var move = async (direction, render, player, map) => {
             var result = map
             var pos = await rowMap.row()
 
-            if (map[pos.row] == map[0]) return map
-            if (settings.walkThrough !== map[pos.row - 1][pos.indexRow] && settings.border == map[pos.row - 1][pos.indexRow]) return map // If you can walk there or not.
+            if (map[pos.row][pos.indexRow] == map[0][pos.indexRow]) return map
+            if (!settings.walkThrough.includes(map[pos.row - 1][pos.indexRow]) || settings.border == map[pos.row - 1][pos.indexRow]) return map
 
             result[pos.row - 1][pos.indexRow] = settings.character
             result[pos.row][pos.indexRow] = settings.walkThrough
@@ -114,8 +114,8 @@ var move = async (direction, render, player, map) => {
             var result = map
             var pos = await rowMap.row()
 
-            if (map[pos.row] == map[map.length - 1]) return map
-            if (settings.walkThrough !== map[pos.row + 1][pos.indexRow] && settings.border == map[pos.row + 1][pos.indexRow]) return map // If you can walk there or not.
+            if (map[pos.row][pos.indexRow] == map[map.length - 1][pos.indexRow]) return map
+            if (!settings.walkThrough.includes(map[pos.row + 1][pos.indexRow]) || settings.border == map[pos.row + 1][pos.indexRow]) return map
 
             result[pos.row + 1][pos.indexRow] = settings.character
             result[pos.row][pos.indexRow] = settings.walkThrough

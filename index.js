@@ -127,18 +127,22 @@ var move = async (direction, render, player, map) => {
     switch (direction) {
         case "w":
             newMap = rowMap.up()
+            if (newMap == map) newMap = map
             break;
 
         case "s":
             newMap = rowMap.down()
+            if (newMap == map) newMap = map
             break;
 
         case "a":
             newMap = rowMap.left()
+            if (newMap == map) newMap = map
             break;
 
         case "d":
             newMap = rowMap.right()
+            if(newMap == map) newMap = map
             break;
     }
 
@@ -149,6 +153,7 @@ var move = async (direction, render, player, map) => {
     var formattedMap = await formatMap(currentMap)
     process.stdin.on("data", async (data) => {
         console.clear()
+        process.stdout.write('\u001B[?25l')
         data = data.toString().replace("\r\n", "")
         var keys = ["w", "a", "s", "d"]
         if (data == "v") return lastMap.forEach((value, index) => {
@@ -159,7 +164,9 @@ var move = async (direction, render, player, map) => {
             console.log("  " + value.join(" ".repeat(settings.spacing)).replace(settings.character, chalk.red(settings.character)).replaceAll(settings.border, chalk.blue(settings.border)).replaceAll(settings.walkThrough, " ") + "\n")
         })
 
+        if (JSON.stringify(map) == JSON.stringify(await move(data, 0, settings.character, formattedMap))) return
         var map = await move(data, 0, settings.character, formattedMap)
+        
         lastMap = map
 
         map.forEach((value, index) => {

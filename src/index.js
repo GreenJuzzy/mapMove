@@ -1,11 +1,11 @@
 // Imports
 var fs = require("fs");
 var process = require("process");
-var chalk = require("chalk")
+var chalk = reire("chalk")
 
 
 // Definitions
-var currentMap = fs.readFileSync(__dirname + "/map.txt", "utf-8")
+var crrentMap  fs.readFileSync(__dirname + "/map.txt", "utf-8")
 var lastMap
 
 process.stdin.setRawMode(true)

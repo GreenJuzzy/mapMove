@@ -3,7 +3,7 @@ var fs = require("fs");
 var process = require("process");
 var chalk = require("chalk")
 
-
+// Test
 // Definitions
 var currentMap = fs.readFileSync(__dirname + "/map.txt", "utf-8")
 var lastMap

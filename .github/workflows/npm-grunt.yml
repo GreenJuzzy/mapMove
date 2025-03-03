@@ -2,7 +2,7 @@ name: NodeJS with Grunt
 
 on:
   push:
-    branches: [ "grunt" ]
+    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
@@ -10,19 +10,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-
     steps:
     - uses: actions/checkout@v4
-
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
+    - uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
-
-    - name: Build
-      run: |
-        npm install
-        grunt
+        node-version: 20
+    
+    - run: npm ci
+    - run: npm install -g grunt-cli
+    - name: Run Grunt for uglification
+      run: grunt
